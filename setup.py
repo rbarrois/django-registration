@@ -5,7 +5,7 @@ from registration import get_version
 
 
 setup(name='django-registration',
-      version='0.1',
+      version='0.8.1-alpha1',
       description='An extensible user-registration application for Django',
       author='James Bennett',
       author_email='james@b-list.org',
