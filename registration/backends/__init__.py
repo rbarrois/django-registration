@@ -17,10 +17,10 @@ def get_backend(path):
     exists, or because the module does not contain a class of the
     appropriate name), ``django.core.exceptions.ImproperlyConfigured``
     is raised.
-    
+
     """
     i = path.rfind('.')
-    module, attr = path[:i], path[i+1:]
+    module, attr = path[:i], path[i + 1:]
     try:
         mod = import_module(module)
     except ImportError, e:
