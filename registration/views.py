@@ -67,9 +67,9 @@ def activate(request, backend,
     ``extra_context`` argument (see above).
 
     **Template:**
-    
+
     registration/activate.html or ``template_name`` keyword argument.
-    
+
     """
     backend = get_backend(backend)
     account = backend.activate(request, **kwargs)
@@ -160,7 +160,7 @@ def register(request, backend, success_url=None, form_class=None,
     ``template_name``
         A custom template to use. If not supplied, this will default
         to ``registration/registration_form.html``.
-    
+
     **Context:**
 
     ``form``
@@ -170,7 +170,7 @@ def register(request, backend, success_url=None, form_class=None,
     (see above).
 
     **Template:**
-    
+
     registration/registration_form.html or ``template_name`` keyword
     argument.
 

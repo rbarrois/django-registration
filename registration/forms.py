@@ -33,14 +33,20 @@ class RegistrationForm(forms.Form):
                                 widget=forms.TextInput(attrs=attrs_dict),
                                 label=_("Username"),
                                 error_messages={'invalid': _("This value must contain only letters, numbers and underscores.")})
-    email = forms.EmailField(widget=forms.TextInput(attrs=dict(attrs_dict,
-                                                               maxlength=75)),
-                             label=_("E-mail"))
-    password1 = forms.CharField(widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
+    email = forms.EmailField(widget=forms.TextInput(
+                                attrs=dict(attrs_dict, maxlength=75)),
+                                label=_("E-mail"))
+    password1 = forms.CharField(widget=forms.PasswordInput(
+                                attrs=attrs_dict,
+                                render_value=False),
                                 label=_("Password"))
-    password2 = forms.CharField(widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
+    password2 = forms.CharField(widget=forms.PasswordInput(
+                                attrs=attrs_dict,
+                                render_value=False),
                                 label=_("Password (again)"))
-    
+    first_name = forms.CharField(label=_("First name"))
+    last_name = forms.CharField(label=_("Last name"))
+
     def clean_username(self):
         """
         Validate that the username is alphanumeric and is not already
