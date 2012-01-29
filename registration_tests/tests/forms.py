@@ -1,7 +1,9 @@
-from django.contrib.auth.models import User
 from django.test import TestCase
 
-from registration import forms
+from registration import forms, get_user_model
+
+
+TEST_USER_MODEL = get_user_model()
 
 
 class RegistrationFormTests(TestCase):
@@ -17,7 +19,7 @@ class RegistrationFormTests(TestCase):
         """
         # Create a user so we can verify that duplicate usernames aren't
         # permitted.
-        User.objects.create_user('alice', 'alice@example.com', 'secret')
+        TEST_USER_MODEL.objects.create_user('alice', 'alice@example.com', 'secret')
 
         invalid_data_dicts = [
             # Non-alphanumeric username.
@@ -48,9 +50,11 @@ class RegistrationFormTests(TestCase):
 
         form = forms.RegistrationForm(data={'username': 'foo',
                                             'email': 'foo@example.com',
+                                            'first_name': 'Foo',
+                                            'last_name': 'Bar',
                                             'password1': 'foo',
                                             'password2': 'foo'})
-        self.failUnless(form.is_valid())
+        self.failUnless(form.is_valid(), form.errors)
 
     def test_registration_form_tos(self):
         """
@@ -60,6 +64,8 @@ class RegistrationFormTests(TestCase):
         """
         form = forms.RegistrationFormTermsOfService(data={'username': 'foo',
                                                           'email': 'foo@example.com',
+                                                          'first_name': 'Foo',
+                                                          'last_name': 'Bar',
                                                           'password1': 'foo',
                                                           'password2': 'foo'})
         self.failIf(form.is_valid())
@@ -68,6 +74,8 @@ class RegistrationFormTests(TestCase):
 
         form = forms.RegistrationFormTermsOfService(data={'username': 'foo',
                                                           'email': 'foo@example.com',
+                                                          'first_name': 'Foo',
+                                                          'last_name': 'Bar',
                                                           'password1': 'foo',
                                                           'password2': 'foo',
                                                           'tos': 'on'})
@@ -81,10 +89,12 @@ class RegistrationFormTests(TestCase):
         """
         # Create a user so we can verify that duplicate addresses
         # aren't permitted.
-        User.objects.create_user('alice', 'alice@example.com', 'secret')
+        TEST_USER_MODEL.objects.create_user('alice', 'alice@example.com', 'secret')
 
         form = forms.RegistrationFormUniqueEmail(data={'username': 'foo',
                                                        'email': 'alice@example.com',
+                                                       'first_name': 'Foo',
+                                                       'last_name': 'Bar',
                                                        'password1': 'foo',
                                                        'password2': 'foo'})
         self.failIf(form.is_valid())
@@ -92,6 +102,8 @@ class RegistrationFormTests(TestCase):
                          [u"This email address is already in use. Please supply a different email address."])
 
         form = forms.RegistrationFormUniqueEmail(data={'username': 'foo',
+                                                       'first_name': 'Foo',
+                                                       'last_name': 'Bar',
                                                        'email': 'foo@example.com',
                                                        'password1': 'foo',
                                                        'password2': 'foo'})
@@ -105,6 +117,8 @@ class RegistrationFormTests(TestCase):
         """
         base_data = {'username': 'foo',
                      'password1': 'foo',
+                     'first_name': 'Foo',
+                     'last_name': 'Bar',
                      'password2': 'foo'}
         for domain in forms.RegistrationFormNoFreeEmail.bad_domains:
             invalid_data = base_data.copy()

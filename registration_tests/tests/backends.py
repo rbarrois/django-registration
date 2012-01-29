@@ -125,7 +125,7 @@ class DefaultRegistrationBackendTests(TestCase):
         """
         self.old_activation = getattr(settings, 'ACCOUNT_ACTIVATION_DAYS', None)
         if self.old_activation is None:
-            settings.ACCOUNT_ACTIVATION_DAYS = 7 # pragma: no cover
+            settings.ACCOUNT_ACTIVATION_DAYS = 7
 
     def tearDown(self):
         """
@@ -134,7 +134,7 @@ class DefaultRegistrationBackendTests(TestCase):
 
         """
         if self.old_activation is None:
-            settings.ACCOUNT_ACTIVATION_DAYS = self.old_activation # pragma: no cover
+            settings.ACCOUNT_ACTIVATION_DAYS = self.old_activation
 
     def test_registration(self):
         """
@@ -147,6 +147,8 @@ class DefaultRegistrationBackendTests(TestCase):
         new_user = self.backend.register(_mock_request(),
                                          username='bob',
                                          email='bob@example.com',
+                                         first_name='Bob',
+                                         last_name='Example',
                                          password1='secret')
 
         # Details of the returned user must match what went in.
@@ -174,6 +176,8 @@ class DefaultRegistrationBackendTests(TestCase):
         new_user = self.backend.register(_mock_request(),
                                          username='bob',
                                          email='bob@example.com',
+                                         first_name='Bob',
+                                         last_name='Example',
                                          password1='secret')
 
         self.assertEqual(new_user.username, 'bob')
@@ -197,6 +201,8 @@ class DefaultRegistrationBackendTests(TestCase):
         valid_user = self.backend.register(_mock_request(),
                                            username='alice',
                                            email='alice@example.com',
+                                           first_name='Alice',
+                                           last_name='Fish',
                                            password1='swordfish')
 
         valid_profile = RegistrationProfile.objects.get(user=valid_user)
@@ -220,6 +226,8 @@ class DefaultRegistrationBackendTests(TestCase):
         expired_user = self.backend.register(_mock_request(),
                                              username='bob',
                                              email='bob@example.com',
+                                             first_name='Bob',
+                                             last_name='Example',
                                              password1='secret')
 
         expired_user.date_joined = expired_user.date_joined - datetime.timedelta(days=settings.ACCOUNT_ACTIVATION_DAYS)
@@ -279,6 +287,8 @@ class DefaultRegistrationBackendTests(TestCase):
         self.backend.register(_mock_request(),
                               username='bob',
                               email='bob@example.com',
+                              first_name='Bob',
+                              last_name='Example',
                               password1='secret')
 
         self.assertEqual(len(received_signals), 1)
@@ -303,6 +313,8 @@ class DefaultRegistrationBackendTests(TestCase):
         new_user = self.backend.register(_mock_request(),
                                          username='bob',
                                          email='bob@example.com',
+                                         first_name='Bob',
+                                         last_name='Example',
                                          password1='secret')
         profile = RegistrationProfile.objects.get(user=new_user)
         self.backend.activate(_mock_request(), profile.activation_key)
@@ -324,6 +336,8 @@ class DefaultRegistrationBackendTests(TestCase):
         new_user = self.backend.register(_mock_request(),
                                          username='bob',
                                          email='bob@example.com',
+                                         first_name='Bob',
+                                         last_name='Example',
                                          password1='secret')
         new_user.date_joined -= datetime.timedelta(days=settings.ACCOUNT_ACTIVATION_DAYS + 1)
         new_user.save()
@@ -335,58 +349,37 @@ class DefaultRegistrationBackendTests(TestCase):
     def test_email_send_action(self):
         """
         Test re-sending of activation emails via admin action.
-        
-        """
-        admin_class = RegistrationAdmin(RegistrationProfile, admin.site)
-        
-        alice = self.backend.register(_mock_request(),
-                                      username='alice',
-                                      email='alice@example.com',
-                                      password1='swordfish')
-        
-        admin_class.resend_activation_email(_mock_request(),
-                                            RegistrationProfile.objects.all())
-        self.assertEqual(len(mail.outbox), 2) # One on registering, one more on the resend.
-        
-        RegistrationProfile.objects.filter(user=alice).update(activation_key=RegistrationProfile.ACTIVATED)
-        admin_class.resend_activation_email(_mock_request(),
-                                            RegistrationProfile.objects.all())
-        self.assertEqual(len(mail.outbox), 2) # No additional email because the account has activated.
 
-    def test_email_send_action_no_sites(self):
         """
-        Test re-sending of activation emails via admin action when
-        ``django.contrib.sites`` is not installed; the fallback will
-        be a ``RequestSite`` instance.
-        
-        """
-        Site._meta.installed = False
         admin_class = RegistrationAdmin(RegistrationProfile, admin.site)
-        
+
         alice = self.backend.register(_mock_request(),
                                       username='alice',
                                       email='alice@example.com',
+                                      first_name='Alice',
+                                      last_name='Fish',
                                       password1='swordfish')
-        
+
         admin_class.resend_activation_email(_mock_request(),
                                             RegistrationProfile.objects.all())
-        self.assertEqual(len(mail.outbox), 2) # One on registering, one more on the resend.
-        
+        self.assertEqual(len(mail.outbox), 2)  # One on registering, one more on the resend.
+
         RegistrationProfile.objects.filter(user=alice).update(activation_key=RegistrationProfile.ACTIVATED)
         admin_class.resend_activation_email(_mock_request(),
                                             RegistrationProfile.objects.all())
-        self.assertEqual(len(mail.outbox), 2) # No additional email because the account has activated.
-        Site._meta.installed = True
+        self.assertEqual(len(mail.outbox), 2)  # No additional email because the account has activated.
 
     def test_activation_action(self):
         """
         Test manual activation of users view admin action.
-        
+
         """
         admin_class = RegistrationAdmin(RegistrationProfile, admin.site)
 
         alice = self.backend.register(_mock_request(),
                                       username='alice',
+                                      first_name='Alice',
+                                      last_name='Fish',
                                       email='alice@example.com',
                                       password1='swordfish')
 
@@ -412,9 +405,11 @@ class SimpleRegistrationBackendTests(TestCase):
 
         """
         new_user = self.backend.register(_mock_request(),
-                                         username='bob',
-                                         email='bob@example.com',
-                                         password1='secret')
+                                        username='bob',
+                                        first_name='Bob',
+                                        last_name='Example',
+                                        email='bob@example.com',
+                                        password1='secret')
 
         # Details of the returned user must match what went in.
         self.assertEqual(new_user.username, 'bob')
@@ -454,6 +449,8 @@ class SimpleRegistrationBackendTests(TestCase):
         """
         new_user = self.backend.register(_mock_request(),
                                          username='bob',
+                                         first_name='Bob',
+                                         last_name='Example',
                                          email='bob@example.com',
                                          password1='secret')
 
@@ -479,6 +476,8 @@ class SimpleRegistrationBackendTests(TestCase):
         self.backend.register(_mock_request(),
                               username='bob',
                               email='bob@example.com',
+                              first_name='Bob',
+                              last_name='Example',
                               password1='secret')
 
         self.assertEqual(len(received_signals), 1)

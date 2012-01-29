@@ -1,13 +1,16 @@
 import datetime
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from registration import forms
 from registration.models import RegistrationProfile
+from registration import get_user_model
+
+
+TEST_USER_MODEL = get_user_model()
 
 
 class RegistrationViewTests(TestCase):
@@ -15,7 +18,7 @@ class RegistrationViewTests(TestCase):
     Test the registration views.
 
     """
-    urls = 'registration.tests.urls'
+    urls = 'registration_tests.urls'
 
     def setUp(self):
         """
@@ -25,7 +28,9 @@ class RegistrationViewTests(TestCase):
         """
         self.old_activation = getattr(settings, 'ACCOUNT_ACTIVATION_DAYS', None)
         if self.old_activation is None:
-            settings.ACCOUNT_ACTIVATION_DAYS = 7 # pragma: no cover
+            settings.ACCOUNT_ACTIVATION_DAYS = 7
+
+        settings.REGISTRATION_USER_MODEL = 'customers.Customer'
 
     def tearDown(self):
         """
@@ -34,7 +39,7 @@ class RegistrationViewTests(TestCase):
 
         """
         if self.old_activation is None:
-            settings.ACCOUNT_ACTIVATION_DAYS = self.old_activation # pragma: no cover
+            settings.ACCOUNT_ACTIVATION_DAYS = self.old_activation
 
     def test_registration_view_initial(self):
         """
@@ -58,6 +63,8 @@ class RegistrationViewTests(TestCase):
         response = self.client.post(reverse('registration_register'),
                                     data={'username': 'alice',
                                           'email': 'alice@example.com',
+                                          'first_name': 'First',
+                                          'last_name': 'Last',
                                           'password1': 'swordfish',
                                           'password2': 'swordfish'})
         self.assertRedirects(response,
@@ -99,6 +106,8 @@ class RegistrationViewTests(TestCase):
         # Even if valid data is posted, it still shouldn't work.
         response = self.client.post(reverse('registration_register'),
                                     data={'username': 'alice',
+                                          'first_name': 'First',
+                                          'last_name': 'Last',
                                           'email': 'alice@example.com',
                                           'password1': 'swordfish',
                                           'password2': 'swordfish'})
@@ -153,6 +162,8 @@ class RegistrationViewTests(TestCase):
         success_redirect = 'http://testserver%s' % reverse('registration_test_custom_success_url')
         response = self.client.post(reverse('registration_test_register_success_url'),
                                     data={'username': 'alice',
+                                         ' first_name': 'First',
+                                          'last_name': 'Last',
                                           'email': 'alice@example.com',
                                           'password1': 'swordfish',
                                           'password2': 'swordfish'})
@@ -171,13 +182,15 @@ class RegistrationViewTests(TestCase):
         self.client.post(reverse('registration_register'),
                          data={'username': 'alice',
                                'email': 'alice@example.com',
+                               'first_name': 'First',
+                               'last_name': 'Last',
                                'password1': 'swordfish',
                                'password2': 'swordfish'})
         profile = RegistrationProfile.objects.get(user__username='alice')
         response = self.client.get(reverse('registration_activate',
                                            kwargs={'activation_key': profile.activation_key}))
         self.assertRedirects(response, success_redirect)
-        self.failUnless(User.objects.get(username='alice').is_active)
+        self.failUnless(TEST_USER_MODEL.objects.get(username='alice').is_active)
 
     def test_invalid_activation(self):
         """
@@ -191,9 +204,12 @@ class RegistrationViewTests(TestCase):
         self.client.post(reverse('registration_register'),
                          data={'username': 'bob',
                                'email': 'bob@example.com',
+                               'first_name': 'First',
+                               'last_name': 'Last',
                                'password1': 'secret',
                                'password2': 'secret'})
-        expired_user = User.objects.get(username='bob')
+
+        expired_user = TEST_USER_MODEL.objects.get(username='bob')
         expired_user.date_joined = expired_user.date_joined - datetime.timedelta(days=settings.ACCOUNT_ACTIVATION_DAYS)
         expired_user.save()
 
@@ -203,7 +219,7 @@ class RegistrationViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['activation_key'],
                          expired_profile.activation_key)
-        self.failIf(User.objects.get(username='bob').is_active)
+        self.failIf(TEST_USER_MODEL.objects.get(username='bob').is_active)
 
     def test_activation_success_url(self):
         """
@@ -217,6 +233,8 @@ class RegistrationViewTests(TestCase):
                          data={'username': 'alice',
                                'email': 'alice@example.com',
                                'password1': 'swordfish',
+                               'first_name': 'First',
+                               'last_name': 'Last',
                                'password2': 'swordfish'})
         profile = RegistrationProfile.objects.get(user__username='alice')
         response = self.client.get(reverse('registration_test_activate_success_url',

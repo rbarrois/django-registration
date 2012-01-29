@@ -12,14 +12,19 @@ def get_version():
             version = '%s %s' % (version, VERSION[4])
     return version
 
-from django.conf import settings
-from django.db import models as django_db_models
-from django.contrib.auth import models as auth_models
-
 
 def get_user_model():
-    if hasattr(settings, 'REGISTRATION_USER_MODEL'):
+    from django.conf import settings
+    from django.db import models as django_db_models
+    from django.contrib.auth import models as auth_models
+
+    model = None
+
+    if hasattr(settings, 'REGISTRATION_USER_MODEL') and settings.REGISTRATION_USER_MODEL:
         app_label, model_label = settings.REGISTRATION_USER_MODEL.split('.')
-        return django_db_models.get_model(app_label, model_label)
-    else:
-        return auth_models.User
+        model = django_db_models.get_model(app_label, model_label)
+
+    if model is None:
+        model = auth_models.User
+
+    return model

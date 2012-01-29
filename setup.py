@@ -23,5 +23,6 @@ setup(name='django-registration',
           'Programming Language :: Python',
           'Topic :: Software Development :: Libraries :: Python Modules',
           'Topic :: Utilities',
-          ],
-      )
+      ],
+      test_suite='registration_tests.runner.runtests',
+)
